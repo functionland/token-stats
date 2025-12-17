@@ -100,6 +100,16 @@ h1 {
     gap: 24px;
 }
 
+.stats-grid.four-cols {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 900px) {
+    .stats-grid.four-cols {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 640px) {
     .stats-grid {
         grid-template-columns: 1fr;
@@ -174,8 +184,13 @@ h1 {
     gap: 16px;
 }
 
+.period-stats.two-cols {
+    grid-template-columns: repeat(2, 1fr);
+}
+
 @media (max-width: 640px) {
-    .period-stats {
+    .period-stats,
+    .period-stats.two-cols {
         grid-template-columns: 1fr;
         gap: 12px;
     }
@@ -204,6 +219,10 @@ h1 {
     padding: 4px 10px;
     border-radius: 20px;
     color: white;
+}
+
+.period-90 {
+    background: #00ACC1;
 }
 
 .period-180 {
@@ -298,8 +317,19 @@ h1 {
     gap: 12px;
 }
 
+.combined-breakdown.four-cols {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 768px) {
+    .combined-breakdown.four-cols {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 640px) {
-    .combined-breakdown {
+    .combined-breakdown,
+    .combined-breakdown.four-cols {
         grid-template-columns: 1fr;
     }
 }
