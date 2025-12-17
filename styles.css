@@ -104,8 +104,19 @@ h1 {
     grid-template-columns: repeat(4, 1fr);
 }
 
+.stats-grid.five-cols {
+    grid-template-columns: repeat(5, 1fr);
+}
+
+@media (max-width: 1100px) {
+    .stats-grid.five-cols {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
 @media (max-width: 900px) {
-    .stats-grid.four-cols {
+    .stats-grid.four-cols,
+    .stats-grid.five-cols {
         grid-template-columns: repeat(2, 1fr);
     }
 }
