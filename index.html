@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FULA Token Stats</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="24" cy="24" r="20" fill="#4285F4"/>
+                    <path d="M24 12L32 28H16L24 12Z" fill="white"/>
+                    <circle cx="24" cy="32" r="4" fill="white"/>
+                </svg>
+                <h1>FULA Token Stats</h1>
+            </div>
+            <p class="subtitle">Functionland Token Analytics on Base Network</p>
+        </header>
+
+        <main>
+            <!-- Token Overview -->
+            <section class="card overview-card">
+                <h2>Token Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Supply</span>
+                        <span class="stat-value" id="totalSupply">
+                            <span class="skeleton"></span>
+                        </span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Burned Tokens</span>
+                        <span class="stat-value" id="burnedTokens">
+                            <span class="skeleton"></span>
+                        </span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Circulating Supply</span>
+                        <span class="stat-value" id="circulatingSupply">
+                            <span class="skeleton"></span>
+                        </span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Staking Contract 1 -->
+            <section class="card staking-card">
+                <div class="card-header">
+                    <h2>Staking Pool 1</h2>
+                    <a class="contract-link" href="https://basescan.org/address/0xb2064743e3da40bB4C18e80620A02a38e87fB145" target="_blank" rel="noopener">
+                        <span class="address">0xb206...B145</span>
+                        <svg class="external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/>
+                        </svg>
+                    </a>
+                </div>
+                <div class="staking-stats">
+                    <div class="period-stats">
+                        <div class="period-item">
+                            <div class="period-header">
+                                <span class="period-badge period-180">180 Days</span>
+                                <span class="apy-badge">6% APY</span>
+                            </div>
+                            <span class="period-value" id="pool1-180days">
+                                <span class="skeleton"></span>
+                            </span>
+                        </div>
+                        <div class="period-item">
+                            <div class="period-header">
+                                <span class="period-badge period-365">365 Days</span>
+                                <span class="apy-badge">15% APY</span>
+                            </div>
+                            <span class="period-value" id="pool1-365days">
+                                <span class="skeleton"></span>
+                            </span>
+                        </div>
+                        <div class="period-item">
+                            <div class="period-header">
+                                <span class="period-badge period-730">730 Days</span>
+                                <span class="apy-badge">18% APY</span>
+                            </div>
+                            <span class="period-value" id="pool1-730days">
+                                <span class="skeleton"></span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="total-staked">
+                        <span class="total-label">Total Staked</span>
+                        <span class="total-value" id="pool1-total">
+                            <span class="skeleton"></span>
+                        </span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Staking Contract 2 -->
+            <section class="card staking-card">
+                <div class="card-header">
+                    <h2>Staking Pool 2</h2>
+                    <a class="contract-link" href="https://basescan.org/address/0x4E875E0A4fEa97E83f1350b63420c36e38241db4" target="_blank" rel="noopener">
+                        <span class="address">0x4E87...1db4</span>
+                        <svg class="external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/>
+                        </svg>
+                    </a>
+                </div>
+                <div class="staking-stats">
+                    <div class="period-stats">
+                        <div class="period-item">
+                            <div class="period-header">
+                                <span class="period-badge period-180">180 Days</span>
+                                <span class="apy-badge">6% APY</span>
+                            </div>
+                            <span class="period-value" id="pool2-180days">
+                                <span class="skeleton"></span>
+                            </span>
+                        </div>
+                        <div class="period-item">
+                            <div class="period-header">
+                                <span class="period-badge period-365">365 Days</span>
+                                <span class="apy-badge">15% APY</span>
+                            </div>
+                            <span class="period-value" id="pool2-365days">
+                                <span class="skeleton"></span>
+                            </span>
+                        </div>
+                        <div class="period-item">
+                            <div class="period-header">
+                                <span class="period-badge period-730">730 Days</span>
+                                <span class="apy-badge">18% APY</span>
+                            </div>
+                            <span class="period-value" id="pool2-730days">
+                                <span class="skeleton"></span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="total-staked">
+                        <span class="total-label">Total Staked</span>
+                        <span class="total-value" id="pool2-total">
+                            <span class="skeleton"></span>
+                        </span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Combined Stats -->
+            <section class="card combined-card">
+                <h2>Combined Staking Overview</h2>
+                <div class="combined-stats">
+                    <div class="combined-item">
+                        <span class="combined-label">Total Staked Across All Pools</span>
+                        <span class="combined-value" id="allPools-total">
+                            <span class="skeleton"></span>
+                        </span>
+                    </div>
+                    <div class="combined-breakdown">
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">180 Days Total</span>
+                            <span class="breakdown-value" id="all-180days">
+                                <span class="skeleton"></span>
+                            </span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">365 Days Total</span>
+                            <span class="breakdown-value" id="all-365days">
+                                <span class="skeleton"></span>
+                            </span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">730 Days Total</span>
+                            <span class="breakdown-value" id="all-730days">
+                                <span class="skeleton"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Data fetched directly from Base Network • Last updated: <span id="lastUpdated">-</span></p>
+            <button class="refresh-btn" id="refreshBtn" onclick="refreshData()">
+                <svg class="refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                </svg>
+                Refresh
+            </button>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
