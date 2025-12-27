@@ -368,15 +368,30 @@ function updateCombinedStats(pool1Data, pool2Data, tokenData) {
     }
 }
 
-// Fetch token holders count from BaseScan API
+// Fetch token holders count from Blockscout API
 async function fetchHoldersCount() {
+    const FALLBACK_HOLDERS = '1081 as of DEC 2025';
+    
     try {
-        // BaseScan doesn't have a public API for holders, so we'll use a workaround
-        // For now, show a link to BaseScan where users can see holders
-        updateElement('holdersCount', '<a href="https://basescan.org/token/0x9e12735d77c72c5C3670636D428f2F3815d8A4cB#balances" target="_blank" rel="noopener">View on BaseScan</a>');
+        // Try Base Blockscout API (public, no API key needed)
+        const response = await fetch(`https://base.blockscout.com/api/v2/tokens/${FULA_TOKEN_ADDRESS}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data && data.holders && parseInt(data.holders) > 0) {
+            const holdersCount = parseInt(data.holders).toLocaleString('en-US');
+            updateElement('holdersCount', holdersCount);
+            console.log(`Holders count: ${holdersCount}`);
+        } else {
+            throw new Error('No holders data in response');
+        }
     } catch (error) {
         console.error('Error fetching holders count:', error);
-        updateElement('holdersCount', 'N/A', true);
+        updateElement('holdersCount', FALLBACK_HOLDERS);
     }
 }
 
