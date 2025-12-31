@@ -248,7 +248,8 @@ h1 {
     background: #9334E6;
 }
 .period-1095 {
-    background: #EF6C00;
+    background: #0D47A1; /* deep blue for strong contrast */
+    color: #ffffff;
 }
 
 .apy-badge {
