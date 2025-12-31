@@ -43,12 +43,13 @@ const STAKING_ABI_POOL1 = [
     'function rewardPool() view returns (address)'
 ];
 
-// ABI for Pool 2 (90/180/365 days)
+// ABI for Pool 2 (90/180/365/1095 days)
 const STAKING_ABI_POOL2 = [
     'function totalStaked() view returns (uint256)',
     'function totalStaked90Days() view returns (uint256)',
     'function totalStaked180Days() view returns (uint256)',
     'function totalStaked365Days() view returns (uint256)',
+    'function totalStaked1095Days() view returns (uint256)',
     'function stakePool() view returns (address)',
     'function rewardPool() view returns (address)'
 ];
@@ -302,7 +303,7 @@ async function fetchStakingDataPool1(poolAddress) {
     return { totalStaked: BigInt(0), staked90Days: BigInt(0), staked180Days: BigInt(0), staked365Days: BigInt(0), staked730Days: BigInt(0) };
 }
 
-// Fetch staking data for Pool 2 (90/180/365 days) - sequential calls to avoid batch limits
+// Fetch staking data for Pool 2 (90/180/365/1095 days) - sequential calls to avoid batch limits
 async function fetchStakingDataPool2(poolAddress) {
     try {
         const stakingContract = new ethers.Contract(poolAddress, STAKING_ABI_POOL2, provider);
@@ -312,10 +313,12 @@ async function fetchStakingDataPool2(poolAddress) {
         const staked90Days = await stakingContract.totalStaked90Days();
         const staked180Days = await stakingContract.totalStaked180Days();
         const staked365Days = await stakingContract.totalStaked365Days();
+        const staked1095Days = await stakingContract.totalStaked1095Days();
 
         updateElement('pool2-90days', formatNumber(formatTokenAmount(staked90Days)) + ' FULA');
         updateElement('pool2-180days', formatNumber(formatTokenAmount(staked180Days)) + ' FULA');
         updateElement('pool2-365days', formatNumber(formatTokenAmount(staked365Days)) + ' FULA');
+        updateElement('pool2-1095days', formatNumber(formatTokenAmount(staked1095Days)) + ' FULA');
         updateElement('pool2-total', formatNumber(formatTokenAmount(totalStaked)) + ' FULA');
 
         return {
@@ -323,13 +326,15 @@ async function fetchStakingDataPool2(poolAddress) {
             staked90Days,
             staked180Days,
             staked365Days,
-            staked730Days: BigInt(0)
+            staked730Days: BigInt(0),
+            staked1095Days
         };
     } catch (error) {
         console.error('Error fetching staking data for pool2:', error);
         updateElement('pool2-90days', 'Error', true);
         updateElement('pool2-180days', 'Error', true);
         updateElement('pool2-365days', 'Error', true);
+        updateElement('pool2-1095days', 'Error', true);
         updateElement('pool2-total', 'Error', true);
         
         return {
@@ -337,7 +342,8 @@ async function fetchStakingDataPool2(poolAddress) {
             staked90Days: BigInt(0),
             staked180Days: BigInt(0),
             staked365Days: BigInt(0),
-            staked730Days: BigInt(0)
+            staked730Days: BigInt(0),
+            staked1095Days: BigInt(0)
         };
     }
 }
@@ -349,12 +355,14 @@ function updateCombinedStats(pool1Data, pool2Data, tokenData) {
     const total180 = pool2Data.staked180Days; // Only Pool 2 has 180 days now
     const total365 = pool1Data.staked365Days + pool2Data.staked365Days;
     const total730 = pool1Data.staked730Days; // Only Pool 1 has 730 days
+    const total1095 = pool2Data.staked1095Days; // Currently only Pool 2 has 1095 days
     const totalAllPools = pool1Data.totalStaked + pool2Data.totalStaked;
 
     updateElement('all-90days', formatNumber(formatTokenAmount(total90)) + ' FULA');
     updateElement('all-180days', formatNumber(formatTokenAmount(total180)) + ' FULA');
     updateElement('all-365days', formatNumber(formatTokenAmount(total365)) + ' FULA');
     updateElement('all-730days', formatNumber(formatTokenAmount(total730)) + ' FULA');
+    updateElement('all-1095days', formatNumber(formatTokenAmount(total1095)) + ' FULA');
     updateElement('allPools-total', formatNumber(formatTokenAmount(totalAllPools)) + ' FULA');
 
     // Calculate circulating supply
