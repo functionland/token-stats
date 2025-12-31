@@ -33,23 +33,23 @@ const ERC20_ABI = [
     'function symbol() view returns (string)'
 ];
 
-// ABI for Pool 1 (180/365/730 days)
+// ABI for Pool 1 (180/365/730/1095 days)
 const STAKING_ABI_POOL1 = [
     'function totalStaked() view returns (uint256)',
     'function totalStaked180Days() view returns (uint256)',
     'function totalStaked365Days() view returns (uint256)',
     'function totalStaked730Days() view returns (uint256)',
+    'function totalStaked1095Days() view returns (uint256)',
     'function stakePool() view returns (address)',
     'function rewardPool() view returns (address)'
 ];
 
-// ABI for Pool 2 (90/180/365/1095 days)
+// ABI for Pool 2 (90/180/365 days)
 const STAKING_ABI_POOL2 = [
     'function totalStaked() view returns (uint256)',
     'function totalStaked90Days() view returns (uint256)',
     'function totalStaked180Days() view returns (uint256)',
     'function totalStaked365Days() view returns (uint256)',
-    'function totalStaked1095Days() view returns (uint256)',
     'function stakePool() view returns (address)',
     'function rewardPool() view returns (address)'
 ];
@@ -270,23 +270,28 @@ async function fetchStakingDataPool1(poolAddress) {
                 const totalStaked = BigInt(callJson.result);
                 console.log(`Pool 1: ${rpcUrl} - totalStaked = ${totalStaked.toString()}`);
                 
-                // This RPC works! Fetch 365 and 730 days data (Pool 1 only has these periods)
+                // This RPC works! Fetch 365, 730, and 1095 days data
                 const resp365 = await fetch(rpcUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_call', params: [{ to: poolAddress, data: iface.encodeFunctionData('totalStaked365Days') }, 'latest'] }) });
                 const json365 = await resp365.json();
                 
                 const resp730 = await fetch(rpcUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_call', params: [{ to: poolAddress, data: iface.encodeFunctionData('totalStaked730Days') }, 'latest'] }) });
                 const json730 = await resp730.json();
+
+                const resp1095 = await fetch(rpcUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_call', params: [{ to: poolAddress, data: iface.encodeFunctionData('totalStaked1095Days') }, 'latest'] }) });
+                const json1095 = await resp1095.json();
                 
                 const staked365Days = json365.result && json365.result !== '0x' ? BigInt(json365.result) : BigInt(0);
                 const staked730Days = json730.result && json730.result !== '0x' ? BigInt(json730.result) : BigInt(0);
+                const staked1095Days = json1095.result && json1095.result !== '0x' ? BigInt(json1095.result) : BigInt(0);
 
                 console.log('Pool 1 data:', { totalStaked: totalStaked.toString(), staked365Days: staked365Days.toString(), staked730Days: staked730Days.toString() });
 
                 updateElement('pool1-365days', formatNumber(formatTokenAmount(staked365Days)) + ' FULA');
                 updateElement('pool1-730days', formatNumber(formatTokenAmount(staked730Days)) + ' FULA');
+                updateElement('pool1-1095days', formatNumber(formatTokenAmount(staked1095Days)) + ' FULA');
                 updateElement('pool1-total', formatNumber(formatTokenAmount(totalStaked)) + ' FULA');
 
-                return { totalStaked, staked90Days: BigInt(0), staked180Days: BigInt(0), staked365Days, staked730Days };
+                return { totalStaked, staked90Days: BigInt(0), staked180Days: BigInt(0), staked365Days, staked730Days, staked1095Days };
             }
         } catch (e) {
             console.warn(`Pool 1: ${rpcUrl} error:`, e.message);
@@ -300,10 +305,10 @@ async function fetchStakingDataPool1(poolAddress) {
     updateElement('pool1-730days', 'RPC error', true);
     updateElement('pool1-total', 'RPC error', true);
     
-    return { totalStaked: BigInt(0), staked90Days: BigInt(0), staked180Days: BigInt(0), staked365Days: BigInt(0), staked730Days: BigInt(0) };
+    return { totalStaked: BigInt(0), staked90Days: BigInt(0), staked180Days: BigInt(0), staked365Days: BigInt(0), staked730Days: BigInt(0), staked1095Days: BigInt(0) };
 }
 
-// Fetch staking data for Pool 2 (90/180/365/1095 days) - sequential calls to avoid batch limits
+// Fetch staking data for Pool 2 (90/180/365 days) - sequential calls to avoid batch limits
 async function fetchStakingDataPool2(poolAddress) {
     try {
         const stakingContract = new ethers.Contract(poolAddress, STAKING_ABI_POOL2, provider);
@@ -313,12 +318,10 @@ async function fetchStakingDataPool2(poolAddress) {
         const staked90Days = await stakingContract.totalStaked90Days();
         const staked180Days = await stakingContract.totalStaked180Days();
         const staked365Days = await stakingContract.totalStaked365Days();
-        const staked1095Days = await stakingContract.totalStaked1095Days();
 
         updateElement('pool2-90days', formatNumber(formatTokenAmount(staked90Days)) + ' FULA');
         updateElement('pool2-180days', formatNumber(formatTokenAmount(staked180Days)) + ' FULA');
         updateElement('pool2-365days', formatNumber(formatTokenAmount(staked365Days)) + ' FULA');
-        updateElement('pool2-1095days', formatNumber(formatTokenAmount(staked1095Days)) + ' FULA');
         updateElement('pool2-total', formatNumber(formatTokenAmount(totalStaked)) + ' FULA');
 
         return {
@@ -326,15 +329,13 @@ async function fetchStakingDataPool2(poolAddress) {
             staked90Days,
             staked180Days,
             staked365Days,
-            staked730Days: BigInt(0),
-            staked1095Days
+            staked730Days: BigInt(0)
         };
     } catch (error) {
         console.error('Error fetching staking data for pool2:', error);
         updateElement('pool2-90days', 'Error', true);
         updateElement('pool2-180days', 'Error', true);
         updateElement('pool2-365days', 'Error', true);
-        updateElement('pool2-1095days', 'Error', true);
         updateElement('pool2-total', 'Error', true);
         
         return {
@@ -342,20 +343,19 @@ async function fetchStakingDataPool2(poolAddress) {
             staked90Days: BigInt(0),
             staked180Days: BigInt(0),
             staked365Days: BigInt(0),
-            staked730Days: BigInt(0),
-            staked1095Days: BigInt(0)
+            staked730Days: BigInt(0)
         };
     }
 }
 
 // Update combined statistics
 function updateCombinedStats(pool1Data, pool2Data, tokenData) {
-    // Pool 1: 365/730 days, Pool 2: 90/180/365 days
+    // Pool 1: 365/730/1095 days, Pool 2: 90/180/365 days
     const total90 = pool2Data.staked90Days; // Only Pool 2 has 90 days
     const total180 = pool2Data.staked180Days; // Only Pool 2 has 180 days now
     const total365 = pool1Data.staked365Days + pool2Data.staked365Days;
     const total730 = pool1Data.staked730Days; // Only Pool 1 has 730 days
-    const total1095 = pool2Data.staked1095Days; // Currently only Pool 2 has 1095 days
+    const total1095 = pool1Data.staked1095Days; // Currently only Pool 1 has 1095 days
     const totalAllPools = pool1Data.totalStaked + pool2Data.totalStaked;
 
     updateElement('all-90days', formatNumber(formatTokenAmount(total90)) + ' FULA');
@@ -378,24 +378,28 @@ function updateCombinedStats(pool1Data, pool2Data, tokenData) {
 
 // Fetch token holders count from Blockscout API
 async function fetchHoldersCount() {
-    const FALLBACK_HOLDERS = '1081 as of DEC 2025';
+    const FALLBACK_HOLDERS = '0';
     
+    // Try Base Blockscout API (public, no API key needed)
     try {
-        // Try Base Blockscout API (public, no API key needed)
         const response = await fetch(`https://base.blockscout.com/api/v2/tokens/${FULA_TOKEN_ADDRESS}`);
-        
+
         if (!response.ok) {
-            throw new Error(`HTTP error: ${response.status}`);
+            console.warn(`Holders API HTTP error: ${response.status}`);
+            updateElement('holdersCount', FALLBACK_HOLDERS);
+            return;
         }
-        
+
         const data = await response.json();
-        
-        if (data && data.holders && parseInt(data.holders) > 0) {
-            const holdersCount = parseInt(data.holders).toLocaleString('en-US');
+        const holdersValue = parseInt(data?.holders ?? '0', 10);
+
+        if (Number.isFinite(holdersValue) && holdersValue >= 0) {
+            const holdersCount = holdersValue.toLocaleString('en-US');
             updateElement('holdersCount', holdersCount);
             console.log(`Holders count: ${holdersCount}`);
         } else {
-            throw new Error('No holders data in response');
+            console.warn('No holders data in response, defaulting to 0');
+            updateElement('holdersCount', FALLBACK_HOLDERS);
         }
     } catch (error) {
         console.error('Error fetching holders count:', error);
