@@ -379,19 +379,20 @@ function updateCombinedStats(pool1Data, pool2Data, tokenData) {
 // Fetch token holders count from Blockscout API
 async function fetchHoldersCount() {
     const FALLBACK_HOLDERS = '0';
-    
-    // Try Base Blockscout API (public, no API key needed)
+    const fallback = () => updateElement('holdersCount', FALLBACK_HOLDERS);
+
     try {
         const response = await fetch(`https://base.blockscout.com/api/v2/tokens/${FULA_TOKEN_ADDRESS}`);
 
         if (!response.ok) {
             console.warn(`Holders API HTTP error: ${response.status}`);
-            updateElement('holdersCount', FALLBACK_HOLDERS);
+            fallback();
             return;
         }
 
         const data = await response.json();
-        const holdersValue = parseInt(data?.holders ?? '0', 10);
+        const holdersRaw = data && data.holders !== undefined ? data.holders : '0';
+        const holdersValue = Number(holdersRaw);
 
         if (Number.isFinite(holdersValue) && holdersValue >= 0) {
             const holdersCount = holdersValue.toLocaleString('en-US');
@@ -399,11 +400,11 @@ async function fetchHoldersCount() {
             console.log(`Holders count: ${holdersCount}`);
         } else {
             console.warn('No holders data in response, defaulting to 0');
-            updateElement('holdersCount', FALLBACK_HOLDERS);
+            fallback();
         }
     } catch (error) {
         console.error('Error fetching holders count:', error);
-        updateElement('holdersCount', FALLBACK_HOLDERS);
+        fallback();
     }
 }
 
