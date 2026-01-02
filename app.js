@@ -391,7 +391,7 @@ async function fetchHoldersCount() {
         }
 
         const data = await response.json();
-        const holdersRaw = data && data.holders !== undefined ? data.holders : '0';
+        const holdersRaw = data && data.holders_count !== undefined ? data.holders_count : '0';
         const holdersValue = Number(holdersRaw);
 
         if (Number.isFinite(holdersValue) && holdersValue >= 0) {
