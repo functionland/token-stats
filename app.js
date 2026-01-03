@@ -376,35 +376,91 @@ function updateCombinedStats(pool1Data, pool2Data, tokenData) {
     }
 }
 
-// Fetch token holders count from Blockscout API
+// Fetch token holders count from Basescan with 1-hour caching
 async function fetchHoldersCount() {
-    const FALLBACK_HOLDERS = '0';
-    const fallback = () => updateElement('holdersCount', FALLBACK_HOLDERS);
+    const CACHE_KEY = 'fula_holders_cache';
+    const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
 
+    // Check cache first
     try {
-        const response = await fetch(`https://base.blockscout.com/api/v2/tokens/${FULA_TOKEN_ADDRESS}`);
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+            const { holders, timestamp } = JSON.parse(cached);
+            const age = Date.now() - timestamp;
+            if (age < CACHE_DURATION) {
+                console.log(`Using cached holders count: ${holders} (cached ${Math.round(age / 60000)} minutes ago)`);
+                updateElement('holdersCount', holders.toLocaleString('en-US'));
+                return;
+            }
+            console.log('Cache expired, fetching fresh data...');
+        }
+    } catch (e) {
+        console.warn('Error reading holders cache:', e);
+    }
+
+    // Fetch fresh data from Basescan
+    try {
+        const response = await fetch(`https://basescan.org/token/${FULA_TOKEN_ADDRESS}`, {
+            headers: {
+                'Accept': 'text/html'
+            }
+        });
 
         if (!response.ok) {
-            console.warn(`Holders API HTTP error: ${response.status}`);
-            fallback();
+            throw new Error(`HTTP error: ${response.status}`);
+        }
+
+        const html = await response.text();
+
+        // Parse holdersplotData from the HTML to get the latest holder count
+        const match = html.match(/var\s+holdersplotData\s*=\s*\[([\s\S]*?)\];/);
+        if (match) {
+            // Extract all y values and get the last one (most recent holder count)
+            const yMatches = [...match[1].matchAll(/y:\s*(\d+)/g)];
+            if (yMatches.length > 0) {
+                const lastHolderCount = parseInt(yMatches[yMatches.length - 1][1], 10);
+
+                if (lastHolderCount > 0) {
+                    // Cache the result
+                    localStorage.setItem(CACHE_KEY, JSON.stringify({
+                        holders: lastHolderCount,
+                        timestamp: Date.now()
+                    }));
+
+                    updateElement('holdersCount', lastHolderCount.toLocaleString('en-US'));
+                    console.log(`Holders count fetched from Basescan: ${lastHolderCount}`);
+                    return;
+                }
+            }
+        }
+
+        throw new Error('Could not parse holders data from Basescan');
+    } catch (error) {
+        console.error('Error fetching holders from Basescan:', error);
+        // Fallback to static file
+        await fetchHoldersFromFile();
+    }
+}
+
+// Fallback: fetch holders count from static file
+async function fetchHoldersFromFile() {
+    try {
+        const response = await fetch('./token_holders.txt?' + Date.now()); // Cache bust
+        if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+        }
+        const text = await response.text();
+        const holders = parseInt(text.trim(), 10);
+
+        if (Number.isFinite(holders) && holders > 0) {
+            updateElement('holdersCount', holders.toLocaleString('en-US'));
+            console.log(`Holders count from fallback file: ${holders}`);
             return;
         }
-
-        const data = await response.json();
-        const holdersRaw = data && data.holders_count !== undefined ? data.holders_count : '0';
-        const holdersValue = Number(holdersRaw);
-
-        if (Number.isFinite(holdersValue) && holdersValue >= 0) {
-            const holdersCount = holdersValue.toLocaleString('en-US');
-            updateElement('holdersCount', holdersCount);
-            console.log(`Holders count: ${holdersCount}`);
-        } else {
-            console.warn('No holders data in response, defaulting to 0');
-            fallback();
-        }
+        throw new Error('Invalid holders count in file');
     } catch (error) {
-        console.error('Error fetching holders count:', error);
-        fallback();
+        console.error('Error fetching holders from file:', error);
+        updateElement('holdersCount', '-');
     }
 }
 
