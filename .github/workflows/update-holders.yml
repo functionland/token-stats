@@ -1,0 +1,84 @@
+name: Update Token Holders Count
+
+on:
+  schedule:
+    # Run daily at 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  update-holders:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch and parse holders count
+        id: fetch-holders
+        run: |
+          echo "Fetching token holders from Basescan..."
+          
+          # Token address
+          TOKEN_ADDRESS="0x9e12735d77c72c5C3670636D428f2F3815d8A4cB"
+          
+          # Fetch the Basescan token page
+          HTML=$(curl -s -L -H "Accept: text/html" "https://basescan.org/token/${TOKEN_ADDRESS}")
+          
+          if [ -z "$HTML" ]; then
+            echo "Failed to fetch HTML from Basescan"
+            exit 1
+          fi
+          
+          # Parse holdersplotData from the HTML to get the latest holder count
+          # Extract the holdersplotData array and find all y values, then get the last one
+          HOLDERS=$(echo "$HTML" | grep -oP 'var\s+holdersplotData\s*=\s*\[[\s\S]*?\];' | grep -oP 'y:\s*\K\d+' | tail -1)
+          
+          if [ -z "$HOLDERS" ] || [ "$HOLDERS" -eq 0 ]; then
+            echo "Could not parse holders count from Basescan, trying alternative method..."
+            
+            # Alternative: try to find holder count in the page text
+            HOLDERS=$(echo "$HTML" | grep -oP 'token holders' | head -1)
+            if [ -z "$HOLDERS" ]; then
+              echo "Failed to parse holders count"
+              exit 1
+            fi
+          fi
+          
+          echo "Parsed holders count: $HOLDERS"
+          echo "holders=$HOLDERS" >> $GITHUB_OUTPUT
+
+      - name: Update token_holders.txt
+        run: |
+          CURRENT=$(cat token_holders.txt 2>/dev/null || echo "0")
+          NEW="${{ steps.fetch-holders.outputs.holders }}"
+          
+          echo "Current holders: $CURRENT"
+          echo "New holders: $NEW"
+          
+          if [ "$NEW" != "$CURRENT" ]; then
+            echo "$NEW" > token_holders.txt
+            echo "Updated token_holders.txt with new count: $NEW"
+          else
+            echo "Holders count unchanged, no update needed"
+          fi
+
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          git add token_holders.txt
+          
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update token holders count to ${{ steps.fetch-holders.outputs.holders }}"
+            git push
+            echo "Changes pushed successfully"
+          fi
